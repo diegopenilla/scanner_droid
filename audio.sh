@@ -1,0 +1,1 @@
+sudo mplayer -vo fbdev2:/dev/fb0 -ao alsa -vf scale=720:480 -loop 1 voices/put_your_hands.wav

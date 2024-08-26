@@ -1,0 +1,1 @@
+sudo mplayer -ao alsa -vo fbdev2:/dev/fb0 -vf scale=720:480 -loop 1 ./videos/two_laser_stripes_video.mp4 && sudo mplayer -vo fbdev2:/dev/fb0 -vf scale=720:480 -frames 1 ./videos/black_frame.mp4
