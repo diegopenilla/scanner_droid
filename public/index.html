@@ -3,18 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Player</title>
+    <title>Audio and Video Player</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Audio Player</h1>
+        <!-- Audio Section -->
+        <h1>Voices</h1>
         <select id="audioSelect">
             <option value="">Select a file</option>
         </select>
         <button id="playButton">Play</button>
         <button id="pauseButton" style="display: none;">Pause</button>
         <button id="resumeButton" style="display: none;">Resume</button>
+
+        <!-- Video Section -->
+        <h1>Projector</h1>
+        <select id="videoSelect">
+            <option value="">Select a video</option>
+        </select>
+        <button id="playVideoButton">Play Video</button>
+        <button id="pauseVideoButton" style="display: none;">Pause Video</button>
+        <button id="resumeVideoButton" style="display: none;">Resume Video</button>
     </div>
     <script src="app.js"></script>
 </body>

@@ -1,19 +1,20 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const { exec, spawn } = require('child_process');
+const { spawn } = require('child_process');
 
 const app = express();
 const PORT = 3000;
 
-// Global variable to track whether audio is currently playing
 let isPlaying = false;
-let currentProcess = null;  // To keep track of the mplayer process
+let isPlayingVideo = false;
+let currentProcess = null;  // For audio
+let currentVideoProcess = null;  // For video
 
-// Serve the static HTML frontend (index.html and other assets) from the public directory
+// Serve the static HTML frontend
 app.use(express.static('public'));
 
-// Endpoint to list .wav files in the 'voices' directory
+// Endpoint to list audio (.wav) files in the 'voices' directory
 app.get('/files', (req, res) => {
     const voicesDir = path.join(__dirname, 'voices');
     fs.readdir(voicesDir, (err, files) => {
@@ -26,7 +27,7 @@ app.get('/files', (req, res) => {
     });
 });
 
-// Endpoint to play audio with mplayer
+// Endpoint to play audio with mplayer (uses spawn to control process)
 app.post('/play', (req, res) => {
     if (isPlaying) {
         return res.status(400).send('Audio is already playing');
@@ -35,21 +36,16 @@ app.post('/play', (req, res) => {
     const fileName = req.query.file;
     const filePath = path.join(__dirname, 'voices', fileName);
 
-    // Run mplayer command to play the audio without the -loop option
-    const playCommand = `mplayer -vo fbdev2:/dev/fb0 -ao alsa -vf scale=720:480 ${filePath}`;
-    
-    currentProcess = exec(playCommand, (error, stdout, stderr) => {
-        if (error) {
-            return res.status(500).send(`Error executing mplayer: ${error.message}`);
-        }
-    });
+    // Run mplayer command using spawn to control it later
+    currentProcess = spawn('mplayer', ['-ao', 'alsa', filePath]);
 
     isPlaying = true;
-    console.log(`Playing: ${fileName}`);
+    console.log(`Playing audio: ${fileName}`);
 
-    // Listen for when the process finishes, to reset isPlaying
+    // Listen for when the audio process finishes, to reset isPlaying
     currentProcess.on('close', (code) => {
         isPlaying = false;
+        currentProcess = null;
         console.log(`Audio finished playing with exit code ${code}`);
     });
 
@@ -58,48 +54,96 @@ app.post('/play', (req, res) => {
 
 // Endpoint to pause/resume audio
 app.post('/pause', (req, res) => {
-    const action = req.query.action; // Either 'pause' or 'resume'
-    const command = action === 'pause' ? 'pkill -STOP mplayer' : 'pkill -CONT mplayer';
-    
-    exec(command, (error) => {
-        if (error) {
-            return res.status(500).send(`Error pausing/resuming mplayer: ${error.message}`);
-        }
-
-        // Update playing state based on the action
-        if (action === 'pause') {
-            isPlaying = false;
-            console.log('Audio paused');
-        } else if (action === 'resume') {
-            isPlaying = true;
-            console.log('Audio resumed');
-        }
-
-        res.send(`${action === 'pause' ? 'Paused' : 'Resumed'} audio`);
-    });
-});
-
-// Endpoint to stop audio
-app.post('/stop', (req, res) => {
-    if (currentProcess) {
-        exec('pkill mplayer', (error) => {
-            if (error) {
-                return res.status(500).send(`Error stopping mplayer: ${error.message}`);
-            }
-
-            isPlaying = false;  // Reset the state when audio stops
-            currentProcess = null;
-            console.log('Audio stopped');
-            res.send('Stopped audio');
-        });
+    if (currentProcess && currentProcess.stdin) {
+        // Send the "pause" command to mplayer (it toggles between pause and resume)
+        currentProcess.stdin.write('p');
+        res.send('Toggled pause/resume on audio');
     } else {
         res.status(400).send('No audio is playing');
     }
 });
 
-// Endpoint to check if audio is playing (for polling)
+// Endpoint to stop audio
+app.post('/stop', (req, res) => {
+    if (currentProcess) {
+        currentProcess.kill();
+        isPlaying = false;
+        currentProcess = null;
+        console.log('Audio stopped');
+        res.send('Stopped audio');
+    } else {
+        res.status(400).send('No audio is playing');
+    }
+});
+
+// Endpoint to list video files in the 'videos' directory
+app.get('/videos', (req, res) => {
+    const videosDir = path.join(__dirname, 'videos');
+    fs.readdir(videosDir, (err, files) => {
+        if (err) {
+            return res.status(500).send('Error reading videos directory');
+        }
+        // Filter for video files
+        const videoFiles = files.filter(file => ['.mp4', '.avi', '.mkv'].includes(path.extname(file)));
+        res.json(videoFiles);
+    });
+});
+
+// Endpoint to play video with mplayer (uses spawn to control process)
+app.post('/playVideo', (req, res) => {
+    if (isPlayingVideo) {
+        return res.status(400).send('Video is already playing');
+    }
+
+    const fileName = req.query.file;
+    const filePath = path.join(__dirname, 'videos', fileName);
+
+    // Run mplayer command using spawn to control it later
+    currentVideoProcess = spawn('mplayer', ['-ao', 'alsa', '-vo', 'fbdev2:/dev/fb0', '-vf', 'scale=720:480', filePath]);
+
+    isPlayingVideo = true;
+    console.log(`Playing video: ${fileName}`);
+
+    // Listen for when the video process finishes, to reset isPlayingVideo
+    currentVideoProcess.on('close', (code) => {
+        isPlayingVideo = false;
+        currentVideoProcess = null;
+        console.log(`Video finished playing with exit code ${code}`);
+    });
+
+    res.send('Playing video');
+});
+
+// Endpoint to pause/resume video
+app.post('/pauseVideo', (req, res) => {
+    if (currentVideoProcess && currentVideoProcess.stdin) {
+        // Send the "pause" command to mplayer (it toggles between pause and resume)
+        currentVideoProcess.stdin.write('p');
+        res.send('Toggled pause/resume on video');
+    } else {
+        res.status(400).send('No video is playing');
+    }
+});
+
+// Endpoint to stop video
+app.post('/stopVideo', (req, res) => {
+    if (currentVideoProcess) {
+        currentVideoProcess.kill();
+        isPlayingVideo = false;
+        currentVideoProcess = null;
+        console.log('Video stopped');
+        res.send('Stopped video');
+    } else {
+        res.status(400).send('No video is playing');
+    }
+});
+
+// Endpoint to check if audio or video is playing (for polling)
 app.get('/status', (req, res) => {
-    res.json({ isPlaying });
+    res.json({
+        isPlaying,
+        isPlayingVideo
+    });
 });
 
 // Start the server
