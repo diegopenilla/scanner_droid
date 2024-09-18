@@ -1,15 +1,60 @@
+//* Sony Droid Backend Server for Audio and Video Playback
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
 const { spawn } = require('child_process');
 
 const app = express();
 const PORT = 3000;
 
-let isPlaying = false;
-let isPlayingVideo = false;
-let currentProcess = null;  // For audio
-let currentVideoProcess = null;  // For video
+let audioProcess = null;
+let videoProcess = null;
+
+// Set up Multer storage for audio uploads
+const audioStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path.join(__dirname, 'voices'));
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname);
+    }
+});
+
+// Set up Multer storage for video uploads
+const videoStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path.join(__dirname, 'videos'));
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname);
+    }
+});
+
+// Initialize upload middleware with file extension filters
+const audioUpload = multer({
+    storage: audioStorage,
+    fileFilter: (req, file, cb) => {
+        const ext = path.extname(file.originalname).toLowerCase();
+        if (ext === '.wav') {
+            cb(null, true);
+        } else {
+            cb(new Error('Only .wav files are allowed!'));
+        }
+    }
+});
+
+
+const videoUpload = multer({
+    storage: videoStorage,
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'video/mp4' || file.mimetype === 'video/quicktime') {
+            cb(null, true);
+        } else {
+            cb(new Error('Only .mp4 or .mov files are allowed!'));
+        }
+    }
+});
 
 // Serve the static HTML frontend
 app.use(express.static('public'));
@@ -21,59 +66,9 @@ app.get('/files', (req, res) => {
         if (err) {
             return res.status(500).send('Error reading voices directory');
         }
-        // Filter for .wav files
         const wavFiles = files.filter(file => path.extname(file) === '.wav');
         res.json(wavFiles);
     });
-});
-
-// Endpoint to play audio with mplayer (uses spawn to control process)
-app.post('/play', (req, res) => {
-    if (isPlaying) {
-        return res.status(400).send('Audio is already playing');
-    }
-
-    const fileName = req.query.file;
-    const filePath = path.join(__dirname, 'voices', fileName);
-
-    // Run mplayer command using spawn to control it later
-    currentProcess = spawn('mplayer', ['-ao', 'alsa', filePath]);
-
-    isPlaying = true;
-    console.log(`Playing audio: ${fileName}`);
-
-    // Listen for when the audio process finishes, to reset isPlaying
-    currentProcess.on('close', (code) => {
-        isPlaying = false;
-        currentProcess = null;
-        console.log(`Audio finished playing with exit code ${code}`);
-    });
-
-    res.send('Playing audio');
-});
-
-// Endpoint to pause/resume audio
-app.post('/pause', (req, res) => {
-    if (currentProcess && currentProcess.stdin) {
-        // Send the "pause" command to mplayer (it toggles between pause and resume)
-        currentProcess.stdin.write('p');
-        res.send('Toggled pause/resume on audio');
-    } else {
-        res.status(400).send('No audio is playing');
-    }
-});
-
-// Endpoint to stop audio
-app.post('/stop', (req, res) => {
-    if (currentProcess) {
-        currentProcess.kill();
-        isPlaying = false;
-        currentProcess = null;
-        console.log('Audio stopped');
-        res.send('Stopped audio');
-    } else {
-        res.status(400).send('No audio is playing');
-    }
 });
 
 // Endpoint to list video files in the 'videos' directory
@@ -83,67 +78,122 @@ app.get('/videos', (req, res) => {
         if (err) {
             return res.status(500).send('Error reading videos directory');
         }
-        // Filter for video files
-        const videoFiles = files.filter(file => ['.mp4', '.avi', '.mkv'].includes(path.extname(file)));
+        const videoFiles = files.filter(file => ['.mp4', '.mov'].includes(path.extname(file)));
         res.json(videoFiles);
     });
 });
 
-// Endpoint to play video with mplayer (uses spawn to control process)
-app.post('/playVideo', (req, res) => {
-    if (isPlayingVideo) {
-        return res.status(400).send('Video is already playing');
+// Endpoint to play audio (using mplayer)
+app.post('/play', (req, res) => {
+    const fileName = req.query.file;
+    const filePath = path.join(__dirname, 'voices', fileName);
+
+    if (audioProcess) {
+        return res.status(400).send('An audio process is already running. Please stop it first.');
     }
 
+    audioProcess = spawn('mplayer', [filePath]);
+
+    console.log(`Playing audio: ${fileName}`);
+
+    audioProcess.on('close', (code) => {
+        audioProcess = null;
+        console.log(`Audio finished with exit code ${code}`);
+    });
+
+    res.send('Playing audio');
+});
+
+// Endpoint to stop audio process
+app.post('/stopAudio', (req, res) => {
+    if (audioProcess) {
+        audioProcess.kill();
+        audioProcess = null;
+        console.log('Audio process stopped.');
+        res.send('Stopped audio process');
+    } else {
+        res.status(400).send('No audio process is running.');
+    }
+});
+
+// Endpoint to play video using mpv
+app.post('/playVideo', (req, res) => {
     const fileName = req.query.file;
-    const filePath = path.join(__dirname, 'videos', fileName);
+    const filePath = path.resolve(__dirname, 'videos', fileName);
 
-    // Run mplayer command using spawn to control it later
-    currentVideoProcess = spawn('mplayer', ['-ao', 'alsa', '-vo', 'fbdev2:/dev/fb0', '-vf', 'scale=720:480', filePath]);
+    if (videoProcess) {
+        return res.status(400).send('A video process is already running. Please stop it first.');
+    }
 
-    isPlayingVideo = true;
+    videoProcess = spawn('mpv', [filePath]);
+
     console.log(`Playing video: ${fileName}`);
 
-    // Listen for when the video process finishes, to reset isPlayingVideo
-    currentVideoProcess.on('close', (code) => {
-        isPlayingVideo = false;
-        currentVideoProcess = null;
-        console.log(`Video finished playing with exit code ${code}`);
+    videoProcess.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
+    });
+
+    videoProcess.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+    });
+
+    videoProcess.on('close', (code) => {
+        videoProcess = null;
+        console.log(`Video finished with exit code ${code}`);
     });
 
     res.send('Playing video');
 });
 
-// Endpoint to pause/resume video
-app.post('/pauseVideo', (req, res) => {
-    if (currentVideoProcess && currentVideoProcess.stdin) {
-        // Send the "pause" command to mplayer (it toggles between pause and resume)
-        currentVideoProcess.stdin.write('p');
-        res.send('Toggled pause/resume on video');
-    } else {
-        res.status(400).send('No video is playing');
-    }
-});
+// Endpoint to loop video using mpv
+app.post('/loopVideo', (req, res) => {
+    const fileName = req.query.file;
+    const filePath = path.resolve(__dirname, 'videos', fileName);
 
-// Endpoint to stop video
-app.post('/stopVideo', (req, res) => {
-    if (currentVideoProcess) {
-        currentVideoProcess.kill();
-        isPlayingVideo = false;
-        currentVideoProcess = null;
-        console.log('Video stopped');
-        res.send('Stopped video');
-    } else {
-        res.status(400).send('No video is playing');
+    if (videoProcess) {
+        return res.status(400).send('A video process is already running. Please stop it first.');
     }
-});
 
-// Endpoint to check if audio or video is playing (for polling)
-app.get('/status', (req, res) => {
-    res.json({
-        isPlaying,
-        isPlayingVideo
+    videoProcess = spawn('mpv', ['--loop=inf', filePath]);
+
+    console.log(`Looping video: ${fileName}`);
+
+    videoProcess.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
     });
+
+    videoProcess.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+    });
+
+    videoProcess.on('close', (code) => {
+        videoProcess = null;
+        console.log(`Looped video finished with exit code ${code}`);
+    });
+
+    res.send('Looping video');
+});
+
+// Endpoint to stop video process
+app.post('/stopVideo', (req, res) => {
+    if (videoProcess) {
+        videoProcess.kill();
+        videoProcess = null;
+        console.log('Video process stopped.');
+        res.send('Stopped video process');
+    } else {
+        res.status(400).send('No video process is running.');
+    }
+});
+
+// Endpoint to handle audio file upload
+app.post('/uploadAudio', audioUpload.single('file'), (req, res) => {
+    res.send('Audio file uploaded successfully');
+});
+
+// Endpoint to handle video file upload
+app.post('/uploadVideo', videoUpload.single('file'), (req, res) => {
+    res.send('Video file uploaded successfully');
 });
 
 // Start the server

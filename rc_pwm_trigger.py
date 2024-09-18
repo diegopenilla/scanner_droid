@@ -1,3 +1,6 @@
+"""
+Template script for reading signals via GPIO PINS
+"""
 import pigpio
 import time
 
