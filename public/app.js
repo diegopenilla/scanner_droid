@@ -1,10 +1,27 @@
 document.addEventListener('DOMContentLoaded', () => {
     const audioSelect = document.getElementById('audioSelect');
-    const playButton = document.getElementById('playButton');
-    const pauseButton = document.getElementById('pauseButton');
-    const resumeButton = document.getElementById('resumeButton');
-    let isPlaying = false;
-    let isPaused = false;
+    const playAudioButton = document.getElementById('playAudioButton');
+    const pauseAudioButton = document.getElementById('pauseAudioButton');
+    const stopAudioButton = document.getElementById('stopAudioButton');
+    
+    const videoSelect = document.getElementById('videoSelect');
+    const playVideoButton = document.getElementById('playVideoButton');
+    const loopVideoButton = document.getElementById('loopVideoButton');
+    const pauseVideoButton = document.getElementById('pauseVideoButton');
+    const stopVideoButton = document.getElementById('stopVideoButton');
+
+    const audioUpload = document.getElementById('audioUpload');
+    const uploadAudioButton = document.getElementById('uploadAudioButton');
+    const audioSpinnerContainer = document.getElementById('audioSpinnerContainer');
+    const audioUploadPercent = document.getElementById('audioUploadPercent');
+
+    const videoUpload = document.getElementById('videoUpload');
+    const uploadVideoButton = document.getElementById('uploadVideoButton');
+    const videoSpinnerContainer = document.getElementById('videoSpinnerContainer');
+    const videoUploadPercent = document.getElementById('videoUploadPercent');
+
+    let audioIsPlaying = false;
+    let videoIsPlaying = false;
 
     // Fetch available .wav files
     fetch('/files')
@@ -18,93 +35,201 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-    // Play selected audio file
-    playButton.addEventListener('click', () => {
+    // Fetch available video files
+    fetch('/videos')
+        .then(response => response.json())
+        .then(files => {
+            files.forEach(file => {
+                const option = document.createElement('option');
+                option.value = file;
+                option.textContent = file;
+                videoSelect.appendChild(option);
+            });
+        });
+
+    // Play audio
+    playAudioButton.addEventListener('click', () => {
         const selectedFile = audioSelect.value;
-        if (selectedFile) {
+        if (selectedFile && !audioIsPlaying) {
             fetch(`/play?file=${selectedFile}`, { method: 'POST' })
                 .then(() => {
-                    isPlaying = true;
-                    isPaused = false;
-                    togglePlayPauseResumeButtons('playing');
-                    console.log('Playing audio');
-                    checkIfAudioFinished(); // Start polling for file completion
+                    audioIsPlaying = true;
+                    toggleAudioButtons(false);
                 })
-                .catch(err => console.error(err));
+                .catch(err => console.error('Error playing audio:', err));
         }
     });
 
-    // Pause the audio
-    pauseButton.addEventListener('click', () => {
-        if (isPlaying) {
-            fetch(`/pause?action=pause`, { method: 'POST' })
+    // Play video
+    playVideoButton.addEventListener('click', () => {
+        const selectedFile = videoSelect.value;
+        if (selectedFile && !videoIsPlaying) {
+            fetch(`/playVideo?file=${selectedFile}`, { method: 'POST' })
                 .then(() => {
-                    isPlaying = false;
-                    isPaused = true; // Now paused
-                    togglePlayPauseResumeButtons('paused');
-                    console.log('Paused audio');
+                    videoIsPlaying = true;
+                    toggleVideoButtons(false);
                 })
-                .catch(err => console.error(err));
+                .catch(err => console.error('Error playing video:', err));
         }
     });
 
-    // Resume the audio
-    resumeButton.addEventListener('click', () => {
-        if (isPaused) {
-            fetch(`/pause?action=resume`, { method: 'POST' })
+    // Play video in loop mode
+    loopVideoButton.addEventListener('click', () => {
+        const selectedFile = videoSelect.value;
+        if (selectedFile && !videoIsPlaying) {
+            fetch(`/loopVideo?file=${selectedFile}`, { method: 'POST' })
                 .then(() => {
-                    isPlaying = true;
-                    isPaused = false; // Now resumed
-                    togglePlayPauseResumeButtons('resumed');
-                    console.log('Resumed audio');
+                    videoIsPlaying = true;
+                    toggleVideoButtons(false);
                 })
-                .catch(err => console.error(err));
+                .catch(err => console.error('Error looping video:', err));
         }
     });
 
-    // Function to toggle Play/Pause/Resume buttons
-    function togglePlayPauseResumeButtons(state) {
-        if (state === 'playing') {
-            playButton.style.display = 'none';
-            pauseButton.style.display = 'inline-block';
-            resumeButton.style.display = 'none';
-        } else if (state === 'paused') {
-            pauseButton.style.display = 'none';
-            resumeButton.style.display = 'inline-block';
-        } else if (state === 'resumed') {
-            pauseButton.style.display = 'inline-block';
-            resumeButton.style.display = 'none';
+    // Stop audio
+    stopAudioButton.addEventListener('click', () => {
+        if (audioIsPlaying) {
+            fetch('/stopAudio', { method: 'POST' })
+                .then(() => {
+                    audioIsPlaying = false;
+                    toggleAudioButtons(true);
+                })
+                .catch(err => console.error('Error stopping audio:', err));
+        }
+    });
+
+    // Stop video
+    stopVideoButton.addEventListener('click', () => {
+        if (videoIsPlaying) {
+            fetch('/stopVideo', { method: 'POST' })
+                .then(() => {
+                    videoIsPlaying = false;
+                    toggleVideoButtons(true);
+                })
+                .catch(err => console.error('Error stopping video:', err));
+        }
+    });
+
+    // Upload audio file with spinner and percentage
+    uploadAudioButton.addEventListener('click', () => {
+        const file = audioUpload.files[0];
+        if (file && file.name.endsWith('.wav')) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/uploadAudio', true);
+
+            // Display spinner and percentage text
+            audioSpinnerContainer.style.display = 'block';
+            audioUploadPercent.innerText = '0%'; // Reset the percentage display
+
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    const percentComplete = Math.round((event.loaded / event.total) * 100);
+                    audioUploadPercent.innerText = `${percentComplete}%`; // Update percentage
+                }
+            };
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    alert('Audio uploaded successfully!');
+                    audioSpinnerContainer.style.display = 'none';
+
+                    // Refresh audio list after upload
+                    fetch('/files')
+                        .then(response => response.json())
+                        .then(files => {
+                            audioSelect.innerHTML = '<option value="">Select a file</option>';
+                            files.forEach(file => {
+                                const option = document.createElement('option');
+                                option.value = file;
+                                option.textContent = file;
+                                audioSelect.appendChild(option);
+                            });
+                        });
+                } else {
+                    alert('Audio upload failed!');
+                    audioSpinnerContainer.style.display = 'none';
+                }
+            };
+
+            xhr.onerror = () => {
+                alert('Error uploading audio.');
+                audioSpinnerContainer.style.display = 'none';
+            };
+
+            xhr.send(formData);
         } else {
-            playButton.style.display = 'inline-block';
-            pauseButton.style.display = 'none';
-            resumeButton.style.display = 'none';
+            alert('Please upload a valid .wav file');
         }
+    });
+
+    // Upload video file with spinner and percentage
+    uploadVideoButton.addEventListener('click', () => {
+        const file = videoUpload.files[0];
+        if (file && (file.type === 'video/mp4' || file.type === 'video/quicktime')) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/uploadVideo', true);
+
+            // Display spinner and percentage text
+            videoSpinnerContainer.style.display = 'block';
+            videoUploadPercent.innerText = '0%'; // Reset the percentage display
+
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    const percentComplete = Math.round((event.loaded / event.total) * 100);
+                    videoUploadPercent.innerText = `${percentComplete}%`; // Update percentage
+                }
+            };
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    alert('Video uploaded successfully!');
+                    videoSpinnerContainer.style.display = 'none';
+
+                    // Refresh video list after upload
+                    fetch('/videos')
+                        .then(response => response.json())
+                        .then(files => {
+                            videoSelect.innerHTML = '<option value="">Select a video</option>';
+                            files.forEach(file => {
+                                const option = document.createElement('option');
+                                option.value = file;
+                                option.textContent = file;
+                                videoSelect.appendChild(option);
+                            });
+                        });
+                } else {
+                    alert('Video upload failed!');
+                    videoSpinnerContainer.style.display = 'none';
+                }
+            };
+
+            xhr.onerror = () => {
+                alert('Error uploading video.');
+                videoSpinnerContainer.style.display = 'none';
+            };
+
+            xhr.send(formData);
+        } else {
+            alert('Please upload a valid .mp4 or .mov file');
+        }
+    });
+
+    function toggleAudioButtons(enable) {
+        playAudioButton.disabled = !enable;
+        pauseAudioButton.disabled = enable;
+        stopAudioButton.disabled = enable;
     }
 
-    // Polling the server to check if the audio has finished playing
-    function checkIfAudioFinished() {
-        const interval = setInterval(() => {
-            fetch('/status')
-                .then(response => response.json())
-                .then(status => {
-                    // Only stop polling and reset buttons when audio finishes
-                    if (!status.isPlaying && !isPaused) {
-                        clearInterval(interval); // Stop polling
-                        onAudioComplete(); // Handle audio completion
-                    }
-                })
-                .catch(err => {
-                    clearInterval(interval);
-                    console.error('Error checking audio status:', err);
-                });
-        }, 1000); // Poll every 1 second
-    }
-
-    // Handle when the audio finishes playing
-    function onAudioComplete() {
-        isPlaying = false;
-        isPaused = false;
-        togglePlayPauseResumeButtons('stopped'); // Reset buttons to the initial state
-        console.log('Audio finished playing');
+    function toggleVideoButtons(enable) {
+        playVideoButton.disabled = !enable;
+        loopVideoButton.disabled = !enable;
+        pauseVideoButton.disabled = enable;
+        stopVideoButton.disabled = enable;
     }
 });

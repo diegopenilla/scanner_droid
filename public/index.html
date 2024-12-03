@@ -3,19 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Player</title>
-    <link rel="stylesheet" href="style.css">
+    <title>SonyDroid</title>
+
+    <!-- Local Bootstrap CSS -->
+    <link rel="stylesheet" href="libs/bootstrap/bootstrap.min.css">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
-    <div class="container">
-        <h1>Audio Player</h1>
-        <select id="audioSelect">
-            <option value="">Select a file</option>
-        </select>
-        <button id="playButton">Play</button>
-        <button id="pauseButton" style="display: none;">Pause</button>
-        <button id="resumeButton" style="display: none;">Resume</button>
+<body class="bg-dark text-light">
+
+    <div class="container mt-5 text-center">
+        <!-- Branding and Title -->
+        <h1 class="display-4 mb-4">SonyDroid v0.1.2</h1>
+
+        <!-- Audio Section -->
+        <div class="card bg-secondary text-light mb-5 p-4 shadow-lg">
+            <h2 class="mb-4">Voices</h2>
+            <div class="mb-3">
+                <label for="audioSelect" class="form-label">Select Audio File:</label>
+                <select id="audioSelect" class="form-select">
+                    <option value="">Select a file</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <button id="playAudioButton" class="btn btn-primary">Play Audio</button>
+                <button id="pauseAudioButton" class="btn btn-warning" disabled hidden>Pause Audio</button>
+                <button id="stopAudioButton" class="btn btn-danger" disabled>Stop Audio</button>
+            </div>
+
+            <!-- Audio Upload -->
+            <h3 class="mt-4">Upload Audio (.wav only)</h3>
+            <div class="mb-3">
+                <input type="file" id="audioUpload" accept=".wav" class="form-control">
+            </div>
+            <button id="uploadAudioButton" class="btn btn-success">Upload Audio</button>
+            
+            <!-- Spinner for Audio Upload Progress -->
+            <div class="mt-3" id="audioSpinnerContainer" style="display: none;">
+                <div class="spinner-border text-info" role="status">
+                    <span class="sr-only">!</span>
+                </div>
+                UPLOADING...
+                <span id="audioUploadPercent" class="ms-3">0%</span>
+            </div>
+        </div>
+
+        <!-- Video Section -->
+        <div class="card bg-secondary text-light mb-5 p-4 shadow-lg">
+            <h2 class="mb-4">Projector</h2>
+            <div class="mb-3">
+                <label for="videoSelect" class="form-label">Select Video File:</label>
+                <select id="videoSelect" class="form-select">
+                    <option value="">Select a video</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <button id="playVideoButton" class="btn btn-primary">Play Video</button>
+                <button id="loopVideoButton" class="btn btn-info">Loop Video</button>
+                <button id="pauseVideoButton" class="btn btn-warning" disabled hidden>Pause Video</button>
+                <button id="stopVideoButton" class="btn btn-danger" disabled>Stop Video</button>
+            </div>
+
+            <!-- Video Upload -->
+            <h3 class="mt-4">Upload Video (.mp4, .mov only)</h3>
+            <div class="mb-3">
+                <input type="file" id="videoUpload" accept=".mp4, .mov" class="form-control">
+            </div>
+            <button id="uploadVideoButton" class="btn btn-success">Upload Video</button>
+
+            <!-- Spinner for Video Upload Progress -->
+            <div class="mt-3" id="videoSpinnerContainer" style="display: none;">
+                <div class="spinner-border text-info" role="status">
+                    <span class="sr-only">!</span>
+                </div>
+                UPLOADING...
+                <span id="videoUploadPercent" class="ms-3">0%</span>
+            </div>
+        </div>
     </div>
+
+    <!-- Local Bootstrap JS -->
+    <script src="libs/bootstrap/bootstrap.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

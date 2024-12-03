@@ -1,0 +1,70 @@
+/* Custom styles for SonyDroid */
+
+/* Custom Font */
+@font-face {
+    font-family: 'Poppins';
+    src: url('../fonts/Poppins-Regular.ttf') format('truetype');
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #121212;
+    color: #f8f9fa;
+}
+
+h1, h2 {
+    font-weight: 600;
+}
+
+h1 {
+    letter-spacing: 2px;
+    font-size: 3rem;
+}
+
+.card {
+    border-radius: 20px;
+}
+
+.card h2 {
+    font-size: 2rem;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+/* Progress bars */
+.progress {
+    height: 20px;
+}
+
+.progress-bar {
+    background-color: #17a2b8;
+}
+
+/* Hover effect for buttons */
+.btn:hover {
+    filter: brightness(1.2);
+}
