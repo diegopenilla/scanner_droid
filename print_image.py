@@ -1,3 +1,28 @@
+"""
+USB Thermal Printer Interface
+
+This module provides functions to print text and images to a USB thermal printer 
+using the python-escpos library. It is designed for use with thermal receipt 
+printers that support ESC/POS commands.
+
+The script identifies the printer using its USB Vendor ID and Product ID, which 
+should be obtained from the 'lsusb' command on Linux systems. The default values 
+are set for a specific thermal printer model (Vendor ID: 0x28e9, Product ID: 0x0289).
+
+Requirements:
+- python-escpos library (install with: pip install python-escpos)
+- PIL/Pillow library (install with: pip install Pillow)
+- Proper USB permissions (either run as root/sudo or set up udev rules)
+
+Usage:
+ - Run the script and choose between text or image printing
+ - For text: Enter the message to print
+ - For images: The script will print a predefined image path (/home/pi/Droid/epa.jpg)
+
+Note: Images are automatically converted to monochrome and resized to fit the 
+printer's capabilities (typically 384 pixels wide for thermal receipt printers).
+"""
+
 from escpos.printer import Usb
 from PIL import Image
 
@@ -46,7 +71,7 @@ def main():
         message = input("Enter the message to print: ")
         print_text_to_usb_printer(message)
     elif option == 'image':
-        image_path = "/home/pi/Droid/epa.jpg"  # Use specified image path
+        image_path = "/home/pi/Droid/sample_image.jpg"  # Use specified image path
         print_image_to_usb_printer(image_path)
     else:
         print("Invalid option. Please enter 'text' or 'image'.")
