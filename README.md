@@ -34,36 +34,36 @@ Still in his early days, the droid has already performed at the at-tension theat
 </div>
 
 
-
-
 ### Motion Control
 
-<div align='center'>
+An RC Controller moves the hoverboard and the droid. A button activates the motor to tilt the head up and down for aiming the projector.
+
+
 
 <video width="560" height="315" controls>
-  <source src="https://res.cloudinary.com/dn6icdd6e/video/upload/v1731176308/website/iufwdytwhiqlupbbnlf6.mp4" type="video/mp4">
-  Your browser does not support the video tag.
+  <source src="https://res.cloudinary.com/dn6icdd6e/video/upload/v1731176308/website/iufwdytwhiqlupbbnlf6.mov" type="video/mp4">
 </video>
-<em>
-    An RC Controller moves the hoverboard and the droid. A button activates the motor to tilt the head up and down for aiming the projector.
-</em>
-</div>
-
 
 
 ### Media Control
 
-<div align='center'>
+   A Web App is used to control the media played by the droid. The app allows to play, stop and upload video and audio tracks to the droid.
 
 <video width="560" height="315" controls>
   <source src="https://res.cloudinary.com/dn6icdd6e/video/upload/v1731176438/website/scbpmt4tl1cuz2z0yhzs.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 
-<em>
-    A Web App is used to control the media played by the droid. The app allows to play, stop and upload video and audio tracks to the droid.
-</em>
-</div>
+
+<br>
+
+
+
+<video width="560" height="315" controls>
+  <source src="https://res.cloudinary.com/dn6icdd6e/video/upload/v1731176623/website/hgwdtyk5phv9jxfrqfhz.mov" type="video/mp4">
+</video>
+
+
 
 ____
 
