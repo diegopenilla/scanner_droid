@@ -59,9 +59,8 @@ An RC Controller moves the hoverboard and the droid. A button activates the moto
 
 
 
-<video width="560" height="315" controls>
-  <source src="https://res.cloudinary.com/dn6icdd6e/video/upload/v1731176623/website/hgwdtyk5phv9jxfrqfhz.mov" type="video/mp4">
-</video>
+
+https://res.cloudinary.com/dn6icdd6e/video/upload/v1731176623/website/hgwdtyk5phv9jxfrqfhz.mov
 
 
 
