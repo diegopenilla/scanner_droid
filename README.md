@@ -88,5 +88,50 @@ Still in his early days, the droid has performed at the at-tension theater festi
 </table>
 </div>
 
-The droid is up for rent, if you are interested in renting it, contact [here](https://diegopenilla.com).
+The droid is up for rent, if you are interested in renting it, contact [here](https://www.diegopenilla.com/zonydroid).
 ____
+
+## Project Structure
+
+This repository is organized into the following directories:
+
+### Core Application
+- **`server.js`** - Main Express.js web server for media control
+- **`package.json`** - Node.js dependencies
+- **`public/`** - Web interface (HTML, CSS, JavaScript)
+- **`voices/`** - Audio files directory
+- **`videos/`** - Video files directory
+
+### Hardware Integration
+- **`hardware/`** - GPIO and sensor monitoring scripts
+- **`bluetooth/`** - Bluetooth connectivity management
+- **`printer/`** - Thermal printer interface scripts
+- **`video_display/`** - Display and framebuffer control scripts
+
+### System Management
+- **`scripts/`** - Installation and systemd service files
+- **`utils/`** - Sample files and utilities
+
+Each directory contains its own README.md with specific documentation and usage instructions.
+
+## API Endpoints
+
+Server runs on `http://localhost:3000`
+
+### Audio
+- `GET /files` - List audio files
+- `POST /play?file=filename.wav` - Play audio  
+- `POST /stopAudio` - Stop audio
+- `POST /uploadAudio` - Upload `.wav` file
+
+### Video  
+- `GET /videos` - List video files
+- `POST /playVideo?file=filename.mp4` - Play video
+- `POST /loopVideo?file=filename.mp4` - Loop video
+- `POST /stopVideo` - Stop video
+- `POST /uploadVideo` - Upload `.mp4/.mov` file
+
+### Static
+- `GET /` - Web interface
+
+**Dependencies:** `mplayer`, `mpv`

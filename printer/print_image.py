@@ -71,7 +71,7 @@ def main():
         message = input("Enter the message to print: ")
         print_text_to_usb_printer(message)
     elif option == 'image':
-        image_path = "/home/pi/Droid/sample_image.jpg"  # Use specified image path
+        image_path = "/home/pi/Droid/utils/sample_image.jpg"  # Use specified image path
         print_image_to_usb_printer(image_path)
     else:
         print("Invalid option. Please enter 'text' or 'image'.")
