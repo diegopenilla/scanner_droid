@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+
     const audioSelect = document.getElementById('audioSelect');
     const playAudioButton = document.getElementById('playAudioButton');
     const pauseAudioButton = document.getElementById('pauseAudioButton');
@@ -231,5 +232,63 @@ document.addEventListener('DOMContentLoaded', () => {
         loopVideoButton.disabled = !enable;
         pauseVideoButton.disabled = enable;
         stopVideoButton.disabled = enable;
+        
     }
+
+    const printTextButton = document.getElementById('printTextButton');
+    const printImageButton = document.getElementById('printImageButton');
+    const textInput = document.getElementById('textInput');
+    const imageUpload = document.getElementById('imageUpload');
+
+    // Function to print text
+    printTextButton.addEventListener('click', () => {
+        const message = textInput.value.trim();
+        if (message) {
+            fetch('/printText', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message }),
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        alert('Text sent to printer successfully!');
+                    } else {
+                        alert('Failed to send text to printer.');
+                    }
+                })
+                .catch((err) => {
+                    console.error('Error printing text:', err);
+                    alert('An error occurred while sending text to the printer.');
+                });
+        } else {
+            alert('Please enter a message to print.');
+        }
+    });
+
+    // Function to print image
+    printImageButton.addEventListener('click', () => {
+        const file = imageUpload.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('imagePath', file);
+
+            fetch('/printImage', {
+                method: 'POST',
+                body: formData,
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        alert('Image sent to printer successfully!');
+                    } else {
+                        alert('Failed to send image to printer.');
+                    }
+                })
+                .catch((err) => {
+                    console.error('Error printing image:', err);
+                    alert('An error occurred while sending the image to the printer.');
+                });
+        } else {
+            alert('Please upload an image to print.');
+        }
+    });
 });

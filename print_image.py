@@ -1,3 +1,4 @@
+import sys
 from escpos.printer import Usb
 from PIL import Image
 
@@ -40,16 +41,21 @@ def print_image_to_usb_printer(image_path):
         print(f"An error occurred: {e}")
 
 def main():
-    """Main function to run the printer program."""
-    option = input("Enter 'text' to print a message or 'image' to print an image: ").strip().lower()
+    """Main function to handle command-line arguments and run the printer tasks."""
+    if len(sys.argv) < 3:
+        print("Usage: python print_image.py [text|image] <message|image_path>")
+        sys.exit(1)
+
+    option = sys.argv[1].lower()
+    value = sys.argv[2]
+
     if option == 'text':
-        message = input("Enter the message to print: ")
-        print_text_to_usb_printer(message)
+        print_text_to_usb_printer(value)
     elif option == 'image':
-        image_path = "/home/pi/Droid/epa.jpg"  # Use specified image path
-        print_image_to_usb_printer(image_path)
+        print_image_to_usb_printer(value)
     else:
-        print("Invalid option. Please enter 'text' or 'image'.")
+        print("Invalid option. Use 'text' for printing text or 'image' for printing an image.")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

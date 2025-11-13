@@ -7,6 +7,15 @@ const { spawn } = require('child_process');
 const app = express();
 const PORT = 3000;
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // To handle URL-encoded data if needed
+
+
+// Helper function to log messages to a file
+function logToFile(message) {
+    console.log(message)
+}
+
 let audioProcess = null;
 let videoProcess = null;
 
@@ -195,7 +204,80 @@ app.post('/uploadVideo', videoUpload.single('file'), (req, res) => {
     res.send('Video file uploaded successfully');
 });
 
+
+// PRINTER
+// Additional functionality: Printing via USB Printer
+// Endpoint to print text to the USB printer
+// Endpoint to print text to the USB printer
+app.post('/printText', (req, res) => {
+    const { message } = req.body;
+
+    if (!message) {
+        logToFile('Failed to print text: No text message provided.');
+        return res.status(400).send('No text message provided for printing.');
+    }
+
+    const pythonProcess = spawn('/home/pi/Droid/venv/bin/python3', ['/home/pi/Droid/print_image.py', 'text', message]);
+
+    pythonProcess.stdout.on('data', (data) => {
+        logToFile(`stdout (printText): ${data}`);
+        console.log(`stdout: ${data}`);
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+        logToFile(`stderr (printText): ${data}`);
+        console.error(`stderr: ${data}`);
+    });
+
+    pythonProcess.on('close', (code) => {
+        if (code === 0) {
+            logToFile('Text printed successfully.');
+            res.send('Text printed successfully.');
+        } else {
+            logToFile('Failed to print text. Exit code: ' + code);
+            res.status(500).send('Failed to print text. Check server logs for details.');
+        }
+    });
+});
+
+// Endpoint to print an image to the USB printer
+app.post('/printImage', (req, res) => {
+    const { imagePath } = req.body;
+
+    if (!imagePath) {
+        logToFile('Failed to print image: No image path provided.');
+        return res.status(400).send('No image path provided for printing.');
+    }
+
+    const pythonProcess = spawn('/home/pi/Droid/venv/bin/python3', ['/home/pi/Droid/print_image.py', 'image', imagePath]);
+
+    pythonProcess.stdout.on('data', (data) => {
+        logToFile(`stdout (printImage): ${data}`);
+        console.log(`stdout: ${data}`);
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+        logToFile(`stderr (printImage): ${data}`);
+        console.error(`stderr: ${data}`);
+    });
+
+    pythonProcess.on('close', (code) => {
+        if (code === 0) {
+            logToFile('Image printed successfully.');
+            res.send('Image printed successfully.');
+        } else {
+            logToFile('Failed to print image. Exit code: ' + code);
+            res.status(500).send('Failed to print image. Check server logs for details.');
+        }
+    });
+});
+
+// ________ END PRINTER_____
+
+
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
+
+
