@@ -1,3 +1,11 @@
+// NOTE: Internet Connectivity & API Calls
+// This server operates in two network modes:
+// 1. Client Mode (Connected to Phone/Home Wi-Fi): Internet IS available. External API calls (OpenAI, Weather, etc.) will work.
+// 2. Access Point Mode (Offline, "SD1X" network): Internet is NOT available. External API calls will fail.
+// 
+// RECOMMENDATION: Before implementing any external API calls, add a check for internet connectivity 
+// (e.g., dns.lookup('google.com') or ping) to prevent timeouts or errors when in AP Mode.
+
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -279,5 +287,3 @@ app.post('/printImage', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
-
-

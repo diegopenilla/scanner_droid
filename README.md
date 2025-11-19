@@ -19,6 +19,17 @@ The Droid server exposes endpoints to:
 - `mplayer` and `mpv` installed for media playback.
 - `bluetoothctl` and `pulseaudio` for Bluetooth audio (if used).
 
+### Audio Setup
+To ensure audio output is routed to the 3.5mm jack (if needed):
+```bash
+amixer cset numid=3 1
+```
+
+### Media Players Installation
+```bash
+sudo apt-get install mplayer mpv
+```
+
 ### Setup Service
 To install and enable the Droid systemd service, run the install script:
 
