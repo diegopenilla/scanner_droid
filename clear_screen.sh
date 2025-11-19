@@ -1,1 +1,0 @@
-sudo mplayer -vo fbdev2:/dev/fb0 -vf scale=720:480 -frames 1 black_frame.mp4
