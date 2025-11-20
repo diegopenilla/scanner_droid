@@ -19,7 +19,7 @@
     --text-muted: #94a3b8;
     --font-stack: 'Poppins', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     --mono-font: 'Courier New', Courier, monospace;
-    --top-bar-bg: #1a1c23; /* Grayish background for top bar */
+    --top-bar-bg: #121217; /* RGB(18, 18, 23) - matches logo background */
 }
 
 body {
@@ -31,6 +31,7 @@ body {
         linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px),
         linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px);
     background-size: 100% 100%, 40px 40px, 40px 40px;
+    padding-bottom: 0;
 }
 
 /* Top Bar */
@@ -256,4 +257,41 @@ textarea.form-control {
     background: var(--card-border);
     width: 100%;
     margin: 2rem 0;
+}
+
+/* Footer */
+.footer {
+    background-color: var(--top-bar-bg);
+    border-top: 1px solid var(--card-border);
+    padding: 2rem 0;
+    margin-top: 4rem;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.footer-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.unit-image {
+    max-width: 300px;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--primary-dim);
+    border-radius: 4px;
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.unit-image:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
+}
+
+/* Responsive Footer */
+@media (max-width: 768px) {
+    .unit-image {
+        max-width: 100%;
+    }
 }
