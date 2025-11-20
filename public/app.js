@@ -292,6 +292,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Conversational Response Elements
+    const respondVoiceSelect = document.getElementById('respondVoiceSelect');
+    const respondInput = document.getElementById('respondInput');
+    const respondButton = document.getElementById('respondButton');
+    const respondStatus = document.getElementById('respondStatus');
+
     // TTS Elements
     const ttsVoiceSelect = document.getElementById('ttsVoiceSelect');
     const ttsInput = document.getElementById('ttsInput');
@@ -299,10 +305,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateAndPlayTtsButton = document.getElementById('generateAndPlayTtsButton');
     const ttsStatus = document.getElementById('ttsStatus');
 
-    // Load voices on startup
+    // Load voices on startup for both selects
     fetch('/tts/voices')
         .then(res => res.json())
         .then(voices => {
+            // Populate conversational response voice select
+            respondVoiceSelect.innerHTML = '<option value="">Select a Voice</option>';
+            voices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.id;
+                option.textContent = `${voice.name} (${voice.category})`;
+                respondVoiceSelect.appendChild(option);
+            });
+
+            // Populate TTS voice select
             ttsVoiceSelect.innerHTML = '<option value="">Select a Voice</option>';
             voices.forEach(voice => {
                 const option = document.createElement('option');
@@ -313,6 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(err => {
             console.error('Error loading voices:', err);
+            respondVoiceSelect.innerHTML = '<option>Error loading voices</option>';
             ttsVoiceSelect.innerHTML = '<option>Error loading voices</option>';
         });
 
@@ -421,4 +438,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Generate & Play TTS
     generateAndPlayTtsButton.addEventListener('click', () => generateTts(true));
+
+    // Observation Comment Handler
+    respondButton.addEventListener('click', () => {
+        const text = respondInput.value.trim();
+        const voiceId = respondVoiceSelect.value;
+
+        if (!text || !voiceId) {
+            alert('Please select a voice and enter an observation.');
+            return;
+        }
+
+        respondStatus.textContent = 'Generating comment and audio... please wait.';
+        respondButton.disabled = true;
+
+        fetch('/tts/respond', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, voiceId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                audioIsPlaying = true;
+                toggleAudioButtons(false);
+                respondStatus.textContent = `Comment: "${data.response}" - Playing audio: ${data.file}`;
+            } else {
+                respondStatus.textContent = 'Error generating comment.';
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            respondStatus.textContent = 'Network error.';
+            alert('An error occurred while generating the comment.');
+        })
+        .finally(() => {
+            respondButton.disabled = false;
+        });
+    });
 });

@@ -240,7 +240,7 @@ class ElevenLabsAPI:
 
     def _get_models_to_try(self, model_id: str) -> list:
         if "v3" in model_id.lower():
-            return ["eleven_v3", "eleven_turbo_v2_5"]
+            return ["eleven_v3"]
         else:
             return [model_id]
 

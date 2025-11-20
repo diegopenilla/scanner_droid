@@ -19,6 +19,25 @@
 
     <div class="container mt-5 text-center">
         
+        <!-- Droid Observation Comment Section -->
+        <div class="card mb-5 p-4">
+            <h2 class="mb-4">Droid Observation Comment</h2>
+            <div class="mb-3">
+                <label for="respondVoiceSelect" class="form-label">Select Voice:</label>
+                <select id="respondVoiceSelect" class="form-select">
+                    <option value="">Loading voices...</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="respondInput" class="form-label">Observation (what the droid sees):</label>
+                <textarea id="respondInput" class="form-control" rows="2" placeholder="Describe what the droid is observing..."></textarea>
+            </div>
+            <div class="mb-3">
+                <button id="respondButton" class="btn btn-primary">Generate Comment & Play</button>
+            </div>
+            <div id="respondStatus" class="mt-2 text-warning"></div>
+        </div>
+
         <!-- Text-to-Speech Section -->
         <div class="card mb-5 p-4">
             <h2 class="mb-4">Text to Speech</h2>

@@ -367,6 +367,72 @@ app.post('/tts/generate', (req, res) => {
     });
 });
 
+// Endpoint to generate conversational response and audio
+app.post('/tts/respond', (req, res) => {
+    const { text, voiceId } = req.body;
+    const outputName = `respond_${Date.now()}`; // Generate unique filename
+
+    if (!text || !voiceId) {
+        return res.status(400).send('Text and Voice ID are required');
+    }
+
+    const pythonCmd = '/home/pi/Droid/venv/bin/python3';
+    const scriptPath = path.join(__dirname, 'droid_tts.py');
+
+    console.log(`Generating conversational response for: "${text}" with voice ${voiceId}`);
+
+    const pythonProcess = spawn(pythonCmd, [scriptPath, 'respond', text, voiceId, outputName]);
+
+    let dataBuffer = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+        dataBuffer += data.toString();
+    });
+    
+    pythonProcess.stderr.on('data', (data) => {
+        console.error(`TTS Respond stderr: ${data}`);
+    });
+
+    pythonProcess.on('close', (code) => {
+        try {
+            // Attempt to find the JSON in the output (in case of extra prints)
+            const jsonStart = dataBuffer.indexOf('{');
+            const jsonEnd = dataBuffer.lastIndexOf('}');
+            if (jsonStart !== -1 && jsonEnd !== -1) {
+                const jsonStr = dataBuffer.substring(jsonStart, jsonEnd + 1);
+                const result = JSON.parse(jsonStr);
+                if (result.success) {
+                    // Automatically play the audio
+                    const fileName = result.file;
+                    const filePath = path.join(__dirname, 'voices', fileName);
+
+                    if (audioProcess) {
+                        audioProcess.kill();
+                        audioProcess = null;
+                    }
+
+                    audioProcess = spawn('mplayer', [filePath]);
+                    console.log(`Playing conversational response: ${fileName}`);
+
+                    audioProcess.on('close', (code) => {
+                        audioProcess = null;
+                        console.log(`Audio finished with exit code ${code}`);
+                    });
+
+                    res.json({ ...result, playing: true });
+                } else {
+                    res.status(500).json(result);
+                }
+            } else {
+                 throw new Error("No JSON found");
+            }
+        } catch (e) {
+            console.error("Parse error:", dataBuffer);
+            res.status(500).send('Failed to generate conversational response');
+        }
+    });
+});
+
 // ________ END ELEVENLABS TTS ________
 
 
