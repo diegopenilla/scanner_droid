@@ -2,4 +2,4 @@
 # sudo iw dev wlan0 interface add ap0 type __ap
 
 # Run the FastAPI server in the background, redirect logs to a file
-node server.js
+/usr/bin/node server.js
