@@ -12,13 +12,36 @@
 </head>
 <body class="bg-dark text-light">
 
+    <!-- Top Bar with Logo -->
+    <div class="top-bar text-center">
+        <img src="droid_logo.png" alt="SonyDroid" class="img-fluid" style="max-height: 80px;">
+    </div>
+
     <div class="container mt-5 text-center">
-        <!-- Branding and Title -->
-        <h1 class="display-4 mb-4">SonyDroid v0.1.2</h1>
+        
+        <!-- Text-to-Speech Section -->
+        <div class="card mb-5 p-4">
+            <h2 class="mb-4">Text to Speech</h2>
+            <div class="mb-3">
+                <label for="ttsVoiceSelect" class="form-label">Select Voice:</label>
+                <select id="ttsVoiceSelect" class="form-select">
+                    <option value="">Loading voices...</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="ttsInput" class="form-label">Text to Speak:</label>
+                <textarea id="ttsInput" class="form-control" rows="2" placeholder="Hello, I am Droid."></textarea>
+            </div>
+            <div class="d-flex gap-2">
+                <button id="generateTtsButton" class="btn btn-success">Generate & Save</button>
+                <button id="generateAndPlayTtsButton" class="btn btn-primary">Generate & Play</button>
+            </div>
+            <div id="ttsStatus" class="mt-2 text-warning"></div>
+        </div>
 
         <!-- Audio Section -->
-        <div class="card bg-secondary text-light mb-5 p-4 shadow-lg">
-            <h2 class="mb-4">Voices</h2>
+        <div class="card mb-5 p-4">
+            <h2 class="mb-4">Voice Module</h2>
             <div class="mb-3">
                 <label for="audioSelect" class="form-label">Select Audio File:</label>
                 <select id="audioSelect" class="form-select">
@@ -49,8 +72,8 @@
         </div>
 
         <!-- Video Section -->
-        <div class="card bg-secondary text-light mb-5 p-4 shadow-lg">
-            <h2 class="mb-4">Projector</h2>
+        <div class="card mb-5 p-4">
+            <h2 class="mb-4">Projector Module</h2>
             <div class="mb-3">
                 <label for="videoSelect" class="form-label">Select Video File:</label>
                 <select id="videoSelect" class="form-select">
@@ -80,43 +103,34 @@
                 <span id="videoUploadPercent" class="ms-3">0%</span>
             </div>
         </div>
-    </div>
 
-    <!-- Text Printing Section -->
-    <div class="card bg-secondary text-light mb-5 p-4 shadow-lg">
-        <h2 class="mb-4">Send Text to Printer</h2>
-        <div class="mb-3">
-            <label for="textInput" class="form-label">Enter Text:</label>
-            <textarea id="textInput" class="form-control" rows="3" placeholder="Type your text here"></textarea>
+        <!-- Text Printing Section -->
+        <div class="card mb-5 p-4">
+            <h2 class="mb-4">Printer :: Text</h2>
+            <div class="mb-3">
+                <label for="textInput" class="form-label">Enter Text:</label>
+                <textarea id="textInput" class="form-control" rows="3" placeholder="Type your text here"></textarea>
+            </div>
+            <button id="printTextButton" class="btn btn-primary">Print Text</button>
         </div>
-        <button id="printTextButton" class="btn btn-primary">Print Text</button>
-    </div>
 
-    <!-- Image Printing Section -->
-    <div class="card bg-secondary text-light mb-5 p-4 shadow-lg">
-        <h2 class="mb-4">Send Image to Printer</h2>
-        <div class="mb-3">
-            <label for="imageUpload" class="form-label">Select Image:</label>
-            <input type="file" id="imageUpload" accept="image/*" class="form-control">
+        <!-- Image Printing Section -->
+        <div class="card mb-5 p-4">
+            <h2 class="mb-4">Printer :: Image</h2>
+            <div class="mb-3">
+                <label for="imageUpload" class="form-label">Select Image:</label>
+                <input type="file" id="imageUpload" accept="image/*" class="form-control">
+            </div>
+            <button id="printImageButton" class="btn btn-primary">Print Image</button>
         </div>
-        <button id="printImageButton" class="btn btn-primary">Print Image</button>
-    </div>
 
-    <!-- Text-to-Speech Section -->
-    <div class="card bg-secondary text-light mb-5 p-4 shadow-lg">
-        <h2 class="mb-4">ElevenLabs TTS</h2>
-        <div class="mb-3">
-            <label for="ttsVoiceSelect" class="form-label">Select Voice:</label>
-            <select id="ttsVoiceSelect" class="form-select">
-                <option value="">Loading voices...</option>
-            </select>
+        <!-- Unit License Section (Moved to bottom) -->
+        <div class="card mb-5 p-4">
+            <h2 class="mb-4">Unit Identification</h2>
+            <div class="text-center">
+                <img src="droid_image.png" alt="Unit License" class="img-fluid rounded shadow-lg" style="max-width: 100%; border: 1px solid var(--primary-dim);">
+            </div>
         </div>
-        <div class="mb-3">
-            <label for="ttsInput" class="form-label">Text to Speak:</label>
-            <textarea id="ttsInput" class="form-control" rows="2" placeholder="Hello, I am Droid."></textarea>
-        </div>
-        <button id="generateTtsButton" class="btn btn-success">Generate & Save</button>
-        <div id="ttsStatus" class="mt-2 text-warning"></div>
     </div>
 
     <!-- Local Bootstrap JS -->

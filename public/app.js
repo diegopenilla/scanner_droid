@@ -296,6 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ttsVoiceSelect = document.getElementById('ttsVoiceSelect');
     const ttsInput = document.getElementById('ttsInput');
     const generateTtsButton = document.getElementById('generateTtsButton');
+    const generateAndPlayTtsButton = document.getElementById('generateAndPlayTtsButton');
     const ttsStatus = document.getElementById('ttsStatus');
 
     // Load voices on startup
@@ -315,8 +316,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ttsVoiceSelect.innerHTML = '<option>Error loading voices</option>';
         });
 
-    // Generate TTS
-    generateTtsButton.addEventListener('click', () => {
+    // Helper to generate TTS
+    function generateTts(shouldPlay) {
         const text = ttsInput.value.trim();
         const voiceId = ttsVoiceSelect.value;
 
@@ -327,6 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ttsStatus.textContent = 'Generating audio... please wait.';
         generateTtsButton.disabled = true;
+        generateAndPlayTtsButton.disabled = true;
 
         fetch('/tts/generate', {
             method: 'POST',
@@ -337,8 +339,8 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             if (data.success) {
                 ttsStatus.textContent = `Generated: ${data.file}`;
-                alert('Audio generated! Refreshing file list...');
-                // Refresh the main audio file list so we can play it
+                
+                // Refresh the main audio file list
                 fetch('/files')
                     .then(response => response.json())
                     .then(files => {
@@ -349,6 +351,55 @@ document.addEventListener('DOMContentLoaded', () => {
                             option.textContent = file;
                             audioSelect.appendChild(option);
                         });
+
+                        // Select the newly generated file
+                        audioSelect.value = data.file;
+
+                        if (shouldPlay) {
+                            // Trigger play logic
+                            if (!audioIsPlaying) {
+                                fetch(`/play?file=${data.file}`, { method: 'POST' })
+                                    .then(() => {
+                                        audioIsPlaying = true;
+                                        toggleAudioButtons(false);
+                                        ttsStatus.textContent = `Generated & Playing: ${data.file}`;
+                                    })
+                                    .catch(err => {
+                                        console.error('Error playing audio:', err);
+                                        ttsStatus.textContent = `Generated but failed to play: ${data.file}`;
+                                    });
+                            } else {
+                                // If something else is playing, maybe stop it first or just warn?
+                                // For now, assume we can force play or just call play api.
+                                // The server prevents play if already playing.
+                                // Let's try to stop then play or just let the user handle it.
+                                // But the requirement says "work in the same way".
+                                // Existing logic checks !audioIsPlaying.
+                                // We should probably stop playing first if something is playing?
+                                // Or just alert.
+                                // Let's try to play directly and handle the error if server says busy.
+                                
+                                fetch(`/play?file=${data.file}`, { method: 'POST' })
+                                    .then(res => {
+                                        if (res.ok) {
+                                            audioIsPlaying = true;
+                                            toggleAudioButtons(false);
+                                            ttsStatus.textContent = `Generated & Playing: ${data.file}`;
+                                        } else {
+                                            // likely 400 because busy
+                                            return res.text().then(msg => {
+                                                throw new Error(msg);
+                                            });
+                                        }
+                                    })
+                                    .catch(err => {
+                                        console.error('Error playing audio:', err);
+                                        alert('Audio generated, but playback failed: ' + err.message);
+                                    });
+                            }
+                        } else {
+                             alert('Audio generated! Refreshing file list...');
+                        }
                     });
             } else {
                 ttsStatus.textContent = 'Error generating audio.';
@@ -361,6 +412,13 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .finally(() => {
             generateTtsButton.disabled = false;
+            generateAndPlayTtsButton.disabled = false;
         });
-    });
+    }
+
+    // Generate TTS
+    generateTtsButton.addEventListener('click', () => generateTts(false));
+
+    // Generate & Play TTS
+    generateAndPlayTtsButton.addEventListener('click', () => generateTts(true));
 });
