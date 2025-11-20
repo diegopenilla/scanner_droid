@@ -291,4 +291,76 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Please upload an image to print.');
         }
     });
+
+    // TTS Elements
+    const ttsVoiceSelect = document.getElementById('ttsVoiceSelect');
+    const ttsInput = document.getElementById('ttsInput');
+    const generateTtsButton = document.getElementById('generateTtsButton');
+    const ttsStatus = document.getElementById('ttsStatus');
+
+    // Load voices on startup
+    fetch('/tts/voices')
+        .then(res => res.json())
+        .then(voices => {
+            ttsVoiceSelect.innerHTML = '<option value="">Select a Voice</option>';
+            voices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.id;
+                option.textContent = `${voice.name} (${voice.category})`;
+                ttsVoiceSelect.appendChild(option);
+            });
+        })
+        .catch(err => {
+            console.error('Error loading voices:', err);
+            ttsVoiceSelect.innerHTML = '<option>Error loading voices</option>';
+        });
+
+    // Generate TTS
+    generateTtsButton.addEventListener('click', () => {
+        const text = ttsInput.value.trim();
+        const voiceId = ttsVoiceSelect.value;
+
+        if (!text || !voiceId) {
+            alert('Please select a voice and enter text.');
+            return;
+        }
+
+        ttsStatus.textContent = 'Generating audio... please wait.';
+        generateTtsButton.disabled = true;
+
+        fetch('/tts/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, voiceId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                ttsStatus.textContent = `Generated: ${data.file}`;
+                alert('Audio generated! Refreshing file list...');
+                // Refresh the main audio file list so we can play it
+                fetch('/files')
+                    .then(response => response.json())
+                    .then(files => {
+                        audioSelect.innerHTML = '<option value="">Select a file</option>';
+                        files.forEach(file => {
+                            const option = document.createElement('option');
+                            option.value = file;
+                            option.textContent = file;
+                            audioSelect.appendChild(option);
+                        });
+                    });
+            } else {
+                ttsStatus.textContent = 'Error generating audio.';
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            ttsStatus.textContent = 'Network error.';
+        })
+        .finally(() => {
+            generateTtsButton.disabled = false;
+        });
+    });
 });

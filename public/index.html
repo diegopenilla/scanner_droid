@@ -8,7 +8,7 @@
     <!-- Local Bootstrap CSS -->
     <link rel="stylesheet" href="libs/bootstrap/bootstrap.min.css">
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="libs/css/styles.css">
 </head>
 <body class="bg-dark text-light">
 
@@ -90,6 +90,33 @@
             <textarea id="textInput" class="form-control" rows="3" placeholder="Type your text here"></textarea>
         </div>
         <button id="printTextButton" class="btn btn-primary">Print Text</button>
+    </div>
+
+    <!-- Image Printing Section -->
+    <div class="card bg-secondary text-light mb-5 p-4 shadow-lg">
+        <h2 class="mb-4">Send Image to Printer</h2>
+        <div class="mb-3">
+            <label for="imageUpload" class="form-label">Select Image:</label>
+            <input type="file" id="imageUpload" accept="image/*" class="form-control">
+        </div>
+        <button id="printImageButton" class="btn btn-primary">Print Image</button>
+    </div>
+
+    <!-- Text-to-Speech Section -->
+    <div class="card bg-secondary text-light mb-5 p-4 shadow-lg">
+        <h2 class="mb-4">ElevenLabs TTS</h2>
+        <div class="mb-3">
+            <label for="ttsVoiceSelect" class="form-label">Select Voice:</label>
+            <select id="ttsVoiceSelect" class="form-select">
+                <option value="">Loading voices...</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="ttsInput" class="form-label">Text to Speak:</label>
+            <textarea id="ttsInput" class="form-control" rows="2" placeholder="Hello, I am Droid."></textarea>
+        </div>
+        <button id="generateTtsButton" class="btn btn-success">Generate & Save</button>
+        <div id="ttsStatus" class="mt-2 text-warning"></div>
     </div>
 
     <!-- Local Bootstrap JS -->

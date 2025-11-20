@@ -283,6 +283,94 @@ app.post('/printImage', (req, res) => {
 // ________ END PRINTER_____
 
 
+// ________ ELEVENLABS TTS ________
+
+// Endpoint to list available ElevenLabs voices
+app.get('/tts/voices', (req, res) => {
+    // Ensure we use the same python env as the rest of the system
+    // Assuming the same venv structure or system python for now
+    const pythonCmd = 'python3'; 
+    const scriptPath = path.join(__dirname, 'droid_tts.py');
+
+    const pythonProcess = spawn(pythonCmd, [scriptPath, 'list']);
+    
+    let dataBuffer = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+        dataBuffer += data.toString();
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+        console.error(`TTS stderr: ${data}`);
+    });
+
+    pythonProcess.on('close', (code) => {
+        if (code === 0) {
+            try {
+                const voices = JSON.parse(dataBuffer);
+                res.json(voices);
+            } catch (e) {
+                console.error('Failed to parse voices JSON:', dataBuffer);
+                res.status(500).send('Failed to parse voices JSON');
+            }
+        } else {
+            res.status(500).send('Failed to list voices');
+        }
+    });
+});
+
+// Endpoint to generate speech from text
+app.post('/tts/generate', (req, res) => {
+    const { text, voiceId } = req.body;
+    const outputName = `tts_${Date.now()}`; // Generate unique filename
+
+    if (!text || !voiceId) {
+        return res.status(400).send('Text and Voice ID are required');
+    }
+
+    const pythonCmd = 'python3';
+    const scriptPath = path.join(__dirname, 'droid_tts.py');
+
+    console.log(`Generating TTS: "${text}" with voice ${voiceId}`);
+
+    const pythonProcess = spawn(pythonCmd, [scriptPath, 'generate', text, voiceId, outputName]);
+
+    let dataBuffer = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+        dataBuffer += data.toString();
+    });
+    
+    pythonProcess.stderr.on('data', (data) => {
+        console.error(`TTS Gen stderr: ${data}`);
+    });
+
+    pythonProcess.on('close', (code) => {
+        try {
+            // Attempt to find the JSON in the output (in case of extra prints)
+            const jsonStart = dataBuffer.indexOf('{');
+            const jsonEnd = dataBuffer.lastIndexOf('}');
+            if (jsonStart !== -1 && jsonEnd !== -1) {
+                const jsonStr = dataBuffer.substring(jsonStart, jsonEnd + 1);
+                const result = JSON.parse(jsonStr);
+                if (result.success) {
+                    res.json(result);
+                } else {
+                    res.status(500).json(result);
+                }
+            } else {
+                 throw new Error("No JSON found");
+            }
+        } catch (e) {
+            console.error("Parse error:", dataBuffer);
+            res.status(500).send('Failed to generate speech');
+        }
+    });
+});
+
+// ________ END ELEVENLABS TTS ________
+
+
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
