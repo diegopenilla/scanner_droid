@@ -287,9 +287,8 @@ app.post('/printImage', (req, res) => {
 
 // Endpoint to list available ElevenLabs voices
 app.get('/tts/voices', (req, res) => {
-    // Ensure we use the same python env as the rest of the system
-    // Assuming the same venv structure or system python for now
-    const pythonCmd = 'python3'; 
+    // Use the same python env as the rest of the system (venv)
+    const pythonCmd = '/home/pi/Droid/venv/bin/python3'; 
     const scriptPath = path.join(__dirname, 'droid_tts.py');
 
     const pythonProcess = spawn(pythonCmd, [scriptPath, 'list']);
@@ -328,7 +327,7 @@ app.post('/tts/generate', (req, res) => {
         return res.status(400).send('Text and Voice ID are required');
     }
 
-    const pythonCmd = 'python3';
+    const pythonCmd = '/home/pi/Droid/venv/bin/python3';
     const scriptPath = path.join(__dirname, 'droid_tts.py');
 
     console.log(`Generating TTS: "${text}" with voice ${voiceId}`);
